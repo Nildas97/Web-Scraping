@@ -1,0 +1,23 @@
+# how to use scrapy shell for finding css selectors
+
+1. to run the scrapy shell
+scrapy shell https://books.toscrape.com/
+
+2. to get the css selectors for books
+response.css('article.product_pod')
+
+3. to get all the books list
+response.css('article.product_pod').get()
+
+naming the command
+books = response.css('article.product_pod').get()
+
+4. to get the first book css selectors
+book = books[0]
+
+5. to get the name of the book
+book.css('h3 a::text').get()
+
+6. to get the price of the book
+book.css('.product_price .price_color::text').get()
+
