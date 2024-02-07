@@ -2,6 +2,11 @@
 
 1. to run the scrapy shell
 scrapy shell https://books.toscrape.com/
+or 
+scrapy shell 
+
+1.5 fetch the right url 
+fetch ('url')
 
 2. to get the css selectors for books
 response.css('article.product_pod')
@@ -20,4 +25,19 @@ book.css('h3 a::text').get()
 
 6. to get the price of the book
 book.css('.product_price .price_color::text').get()
+
+7. to get the category of the book
+<using xpath alternate to css selectors>
+response.xpath("//ul[@class='breadcrumb']/li[@class='active']/preceding-sibling::li[1]/a/text()").get()
+
+8. to get the product description of the book
+<using xpath alternate to css selectors>
+response.xpath("//div[@id='product_description']/following-sibling::p/text()").get()
+
+9. to get the product information from the table
+table_rows = response.css("table tr")
+table_rows[1].css('td::text').get()
+
+10. to get the ratings of a book
+response.css("p.star-rating").attrib['class']
 
