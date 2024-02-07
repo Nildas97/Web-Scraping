@@ -5,6 +5,7 @@
 
 
 # useful for handling different item types with a single interface
+import mysql.connector
 from itemadapter import ItemAdapter
 
 
@@ -63,3 +64,96 @@ class BookscrapyPipeline:
         elif star_text_value == "five":
             adapter['ratings'] = 5
         return item
+
+
+class SaveToMySQLPipeline:
+
+    def __init__(self):
+        self.create_connection()
+        self.create_table()
+
+    def create_connection(self):
+        self.conn = mysql.connector.connect(
+            host='localhost',
+            user='root',
+            passwd='12345@nil',
+            database='books'
+        )
+        self.curr = self.conn.cursor()
+
+    def create_table(self):
+        self.curr.execute("""DROP TABLE IF EXISTS books""")
+        self.curr.execute("""
+        CREATE TABLE IF NOT EXISTS books(
+            id int NOT NULL auto_increment, 
+            url VARCHAR(255),
+            title text,
+            upc VARCHAR(255),
+            product_type VARCHAR(255),
+            price_excl_tax DECIMAL,
+            price_incl_tax DECIMAL,
+            tax DECIMAL,
+            price DECIMAL,
+            availability INTEGER,
+            reviews INTEGER,
+            ratings INTEGER,
+            category VARCHAR(255),
+            description text,
+            PRIMARY KEY (id)
+        )
+        """)
+
+    def process_item(self, item, spider):
+
+        self.curr.execute(""" insert into books (
+            url, 
+            title, 
+            upc, 
+            product_type, 
+            price_excl_tax,
+            price_incl_tax,
+            tax,
+            price,
+            availability,
+            reviews,
+            ratings,
+            category,
+            description
+            ) values (
+                %s,
+                %s,
+                %s,
+                %s,
+                %s,
+                %s,
+                %s,
+                %s,
+                %s,
+                %s,
+                %s,
+                %s,
+                %s
+                )""", (
+            item["url"],
+            item["title"],
+            item["upc"],
+            item["product_type"],
+            item["price_excl_tax"],
+            item["price_incl_tax"],
+            item["tax"],
+            item["price"],
+            item["availability"],
+            item["reviews"],
+            item["ratings"],
+            item["category"],
+            str(item["description"])
+        ))
+        self.conn.commit()
+
+        return item
+
+    def close_spider(self, spider):
+
+        # Close cursor & connection to database
+        self.curr.close()
+        self.conn.close()

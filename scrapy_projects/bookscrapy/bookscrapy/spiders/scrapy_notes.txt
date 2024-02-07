@@ -41,3 +41,22 @@ table_rows[1].css('td::text').get()
 10. to get the ratings of a book
 response.css("p.star-rating").attrib['class']
 
+# how to save the data 
+1. scrapy crawl spider_name -O file_name.csv
+
+# how to append the data where you have left
+2. scrapy crawl spider_name -o file_name.csv
+
+# by adding FEEDS in the settings.py 
+# no need to mention everytime about saving the data
+
+FEEDS = {
+    'data.json' : {'format' : 'json'}
+}
+
+# also you can specify the custom settings in the spider.py
+    custom_settings = {
+        'FEEDS': {
+            'data.json': {'format': 'json', 'overwrite': True},
+        }
+    }
