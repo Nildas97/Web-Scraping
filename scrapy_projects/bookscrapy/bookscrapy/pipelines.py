@@ -5,8 +5,12 @@
 
 
 # useful for handling different item types with a single interface
-import mysql.connector
+# import mysql.connector
+
+import os
 from itemadapter import ItemAdapter
+from pymongo import MongoClient
+from dotenv import load_dotenv
 
 
 class BookscrapyPipeline:
@@ -66,94 +70,148 @@ class BookscrapyPipeline:
         return item
 
 
-class SaveToMySQLPipeline:
+# class SaveToMySQLPipeline:
+
+#     def __init__(self):
+#         self.create_connection()
+#         self.create_table()
+
+#     def create_connection(self):
+#         self.conn = mysql.connector.connect(
+#             host='localhost',
+#             user='root',
+#             passwd='12345@nil',
+#             database='books'
+#         )
+#         self.curr = self.conn.cursor()
+
+#     def create_table(self):
+#         self.curr.execute("""DROP TABLE IF EXISTS books""")
+#         self.curr.execute("""
+#         CREATE TABLE IF NOT EXISTS books(
+#             id int NOT NULL auto_increment,
+#             url VARCHAR(255),
+#             title text,
+#             upc VARCHAR(255),
+#             product_type VARCHAR(255),
+#             price_excl_tax DECIMAL,
+#             price_incl_tax DECIMAL,
+#             tax DECIMAL,
+#             price DECIMAL,
+#             availability INTEGER,
+#             reviews INTEGER,
+#             ratings INTEGER,
+#             category VARCHAR(255),
+#             description text,
+#             PRIMARY KEY (id)
+#         )
+#         """)
+
+#     def process_item(self, item, spider):
+
+#         self.curr.execute(""" insert into books (
+#             url,
+#             title,
+#             upc,
+#             product_type,
+#             price_excl_tax,
+#             price_incl_tax,
+#             tax,
+#             price,
+#             availability,
+#             reviews,
+#             ratings,
+#             category,
+#             description
+#             ) values (
+#                 %s,
+#                 %s,
+#                 %s,
+#                 %s,
+#                 %s,
+#                 %s,
+#                 %s,
+#                 %s,
+#                 %s,
+#                 %s,
+#                 %s,
+#                 %s,
+#                 %s
+#                 )""", (
+#             item["url"],
+#             item["title"],
+#             item["upc"],
+#             item["product_type"],
+#             item["price_excl_tax"],
+#             item["price_incl_tax"],
+#             item["tax"],
+#             item["price"],
+#             item["availability"],
+#             item["reviews"],
+#             item["ratings"],
+#             item["category"],
+#             str(item["description"])
+#         ))
+#         self.conn.commit()
+
+#         return item
+
+#     def close_spider(self, spider):
+
+#         # Close cursor & connection to database
+#         self.curr.close()
+#         self.conn.close()
+
+
+# class SaveToMongoDBPipeline:
+
+#     def __init__(self):
+#         pass
+
+#     def open_spider(self, spider):
+#         self.db = get_mongodb_client()
+
+#     def process_item(self, item, spider):
+#         items_to_insert = []
+#         if item:
+#             items_to_insert.append(dict(item))
+
+#         if len(items_to_insert) >= 10:
+#             collection = self.db['books_db']
+#             try:
+#                 collection.insert_many(items_to_insert)
+#                 self.logger.info("Inserted %d items", len(items_to_insert))
+#             except pymongo.errors.PyMongoError as e:
+#                 self.logger.error("Error inserting data: %s", e)
+#             items_to_insert = []
+
+#         return item
+
+
+# Load environment variables (assuming .env file is in the same directory)
+load_dotenv()
+
+
+class SaveToMongoDBPipeline:
 
     def __init__(self):
-        self.create_connection()
-        self.create_table()
+        """Initializes the MongoDB connection using environment variables."""
+        self.mongo_url = os.getenv("MONGODB_URL")
+        self.mongo_db = os.getenv("MONGODB_DATABASE")
 
-    def create_connection(self):
-        self.conn = mysql.connector.connect(
-            host='localhost',
-            user='root',
-            passwd='12345@nil',
-            database='books'
-        )
-        self.curr = self.conn.cursor()
-
-    def create_table(self):
-        self.curr.execute("""DROP TABLE IF EXISTS books""")
-        self.curr.execute("""
-        CREATE TABLE IF NOT EXISTS books(
-            id int NOT NULL auto_increment, 
-            url VARCHAR(255),
-            title text,
-            upc VARCHAR(255),
-            product_type VARCHAR(255),
-            price_excl_tax DECIMAL,
-            price_incl_tax DECIMAL,
-            tax DECIMAL,
-            price DECIMAL,
-            availability INTEGER,
-            reviews INTEGER,
-            ratings INTEGER,
-            category VARCHAR(255),
-            description text,
-            PRIMARY KEY (id)
-        )
-        """)
+        self.client = MongoClient(self.mongo_url)
+        self.db = self.client[self.mongo_db]
 
     def process_item(self, item, spider):
-
-        self.curr.execute(""" insert into books (
-            url, 
-            title, 
-            upc, 
-            product_type, 
-            price_excl_tax,
-            price_incl_tax,
-            tax,
-            price,
-            availability,
-            reviews,
-            ratings,
-            category,
-            description
-            ) values (
-                %s,
-                %s,
-                %s,
-                %s,
-                %s,
-                %s,
-                %s,
-                %s,
-                %s,
-                %s,
-                %s,
-                %s,
-                %s
-                )""", (
-            item["url"],
-            item["title"],
-            item["upc"],
-            item["product_type"],
-            item["price_excl_tax"],
-            item["price_incl_tax"],
-            item["tax"],
-            item["price"],
-            item["availability"],
-            item["reviews"],
-            item["ratings"],
-            item["category"],
-            str(item["description"])
-        ))
-        self.conn.commit()
-
+        items_to_insert = []
+        if item:
+            items_to_insert.append(dict(item))
+        # if len(items_to_insert) >= 10:
+            collection = self.db['books_db']
+            collection.insert_many(items_to_insert)
+            items_to_insert = []
         return item
 
     def close_spider(self, spider):
-
-        # Close cursor & connection to database
-        self.curr.close()
-        self.conn.close()
+        """Closes the MongoDB connection."""
+        self.client.close()

@@ -17,6 +17,12 @@ NEWSPIDER_MODULE = "bookscrapy.spiders"
 #     'data.json' : {'format' : 'json'}
 # }
 
+SCRAPEOPS_API_KEY = 'd355a3d7-7e75-4b1f-9a30-dccf2c3e740b'
+SCRAPEOPS_FAKE_USER_AGENT_ENDPOINT = 'https://headers.scrapeops.io/v1/browser-headers'
+SCRAPEOPS_FAKE_USER_AGENT_ENABLED = True
+SCRAPEOPS_NUM_RESULTS = 5
+
+
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 # USER_AGENT = "bookscrapy (+http://www.yourdomain.com)"
 
@@ -54,9 +60,11 @@ ROBOTSTXT_OBEY = True
 
 # Enable or disable downloader middlewares
 # See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
-# DOWNLOADER_MIDDLEWARES = {
-#    "bookscrapy.middlewares.BookscrapyDownloaderMiddleware": 543,
-# }
+DOWNLOADER_MIDDLEWARES = {
+    # "bookscrapy.middlewares.BookscrapyDownloaderMiddleware": 543,
+    # "bookscrapy.middlewares.ScrapeOpsFakeUserAgentMiddleware": 400,
+    "bookscrapy.middlewares.ScrapeOpsFakeBrowserHeaderAgentMiddleware": 500,
+}
 
 # Enable or disable extensions
 # See https://docs.scrapy.org/en/latest/topics/extensions.html
@@ -68,7 +76,8 @@ ROBOTSTXT_OBEY = True
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
     "bookscrapy.pipelines.BookscrapyPipeline": 300,
-    "bookscrapy.pipelines.SaveToMySQLPipeline": 400,
+    # "bookscrapy.pipelines.SaveToMySQLPipeline": 400,
+    # "bookscrapy.pipelines.SaveToMongoDBPipeline": 500,
 
 }
 
@@ -92,6 +101,7 @@ ITEM_PIPELINES = {
 # HTTPCACHE_DIR = "httpcache"
 # HTTPCACHE_IGNORE_HTTP_CODES = []
 # HTTPCACHE_STORAGE = "scrapy.extensions.httpcache.FilesystemCacheStorage"
+
 
 # Set settings whose default value is deprecated to a future-proof value
 REQUEST_FINGERPRINTER_IMPLEMENTATION = "2.7"

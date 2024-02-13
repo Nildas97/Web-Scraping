@@ -60,3 +60,8 @@ FEEDS = {
             'data.json': {'format': 'json', 'overwrite': True},
         }
     }
+
+# while scraping websites, some websites which are complex and commercial
+# may check your IP address, user agent and even the entire request headers every time.
+# if they find suspicious in any of the three then they may block you from scraping data.
+# check the terms and conditions in the websites if they want you to login before scraping.
